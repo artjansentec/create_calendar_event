@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Calendar API Microsoft</title>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <p>Google Calendar API Microsoft</p>
+
+    <!--Add buttons to initiate auth sequence and sign out-->
+    <button id="authorize_button" onclick="init()">Authorize</button>
+    <button id="authorize_button" onclick="displayAccessTokenAsync()">Mostrar Token</button>
+    <button id="signout_button" onclick="sendEventAsync()">Enviar Evento</button>
+
+    <pre id="content" style="white-space: pre-wrap;"></pre>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.js"></script>
+    <script src="./require.min.js"></script>
+
+    <script type="text/javascript">
+    // Copyright (c) Microsoft Corporation. All rights reserved.
+    // Licensed under the MIT license.
+    const azure = require('@azure/identity');
+    const graph = require('@microsoft/microsoft-graph-client');
+    const authProviders =
+    require('@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials');
+
+
+    const settings = {
+        'clientId': '1e868d58-bfe6-4042-a58d-309d0ff9cc4c',
+        'tenantId': 'common',
+        'graphUserScopes': [
+            'user.read',
+            'Calendars.ReadWrite',
+            'mail.read',
+            'mail.send'
+        ]
+    };
+
+    function init() {
+        // Initialize Graph
+        initializeGraph(settings);
+    }
+
+
+    // <InitializeGraphSnippet>
+    async function initializeGraph(settings) {
+        graphHelper.initializeGraphForUserAuth(settings, (info) => {
+            // Display the device code message to
+            // the user. This tells them
+            // where to go to sign in and provides the
+            // code to use.
+            console.log(info.message);
+        });
+
+        // Greet the user by name
+        await greetUserAsync();
+
+    }
+    // </InitializeGraphSnippet>
+
+    // <GreetUserSnippet>
+    async function greetUserAsync() {
+        try {
+            const user = await graphHelper.getUserAsync();
+            console.log(`Hello, ${user?.displayName}!`);
+            // For Work/school accounts, email is in mail property
+            // Personal accounts, email is in userPrincipalName
+            console.log(`Email: ${user?.mail ?? user?.userPrincipalName ?? ''}`);
+        } catch (err) {
+            console.log(`Error getting user: ${err}`);
+        }
+    }
+    // </GreetUserSnippet>
+
+    // <DisplayAccessTokenSnippet>
+    async function displayAccessTokenAsync() {
+        try {
+            const userToken = await graphHelper.getUserTokenAsync();
+            console.log(`User token: ${userToken}`);
+        } catch (err) {
+            console.log(`Error getting user access token: ${err}`);
+        }
+    }
+    // </DisplayAccessTokenSnippet>
+
+    // <SendMailSnippet>
+    async function sendEventAsync() {
+        try {
+            // Send mail to the signed-in user
+            // Get the user for their email address
+            const user = await graphHelper.getUserAsync();
+            const userEmail = user?.mail ?? user?.userPrincipalName;
+
+            if (!userEmail) {
+            console.log('Couldn\'t get your email address, canceling...');
+            return;
+            }
+
+            const result = await graphHelper.sendEventAsync('Testing Microsoft Graph',
+            'Hello world!', userEmail);
+            console.log('Mail sent.');
+            console.log(result);
+        } catch (err) {
+            console.log(`Error sending mail: ${err}`);
+        }
+    }
+    // </SendMailSnippet>
+
+
+
+
+    </script>
+
+  </body>
+</html>
